@@ -4,7 +4,7 @@ data:
   left_masks_dir: D:\ai intro\AI intro\7. Retele Complet Convolutionale\Date radiografii pulmonare - Copy\train\segmentari\plamanul stang
   data_csv: dataset_seg.csv
 
-  img_size: [128, 128]
+  img_size: [128,128]
   split_per:
     train: 0.8
     valid: 0.1
@@ -17,7 +17,3 @@ train:
   epochs: 10
 test:
   threshold: 0.5
-augumentare:
-  rotatie: 180
-  factor: 4
-  probabilitate: 70
