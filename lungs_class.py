@@ -6,6 +6,7 @@ import random
 import yaml
 import cv2
 
+import os 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -77,7 +78,7 @@ class LungSegDataset(torch.utils.data.Dataset):
         
         return torch.as_tensor(x.copy()).float(), torch.as_tensor(y.copy()).long()
     
-def plot_acc_loss(result):
+def plot_acc_loss(result,path):
     acc = result['acc']['train']
     loss = result['loss']['train']
     val_acc = result['acc']['valid']
@@ -102,5 +103,6 @@ def plot_acc_loss(result):
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     
-    plt.show()
+    plt.savefig(f"{path}\\Curbe de învățare")
+    
     
