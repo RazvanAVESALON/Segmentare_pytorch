@@ -113,13 +113,14 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
 
                     if phase == 'valid':
                         # salvam ponderile modelului dupa fiecare epoca
-                        # torch.save(network, 'my_model.pth')
-                        model_path = f"{weights_dir}\\model_epoch{ep}.pth"
-                        torch.save({'epoch': ep,
-                                    'model_state_dict': network.state_dict(),
-                                    'optimizer_state_dict': opt.state_dict(),
-                                    'loss': total_loss,
-                                    }, model_path) 
+                        torch.save(network, f"{weights_dir}\\my_model{datetime.now().strftime('%m%d%Y_%H%M')}.pt")
+                        
+                    #     model_path = f"{weights_dir}\\model_epoch{ep}.pth"
+                    #     torch.save({'epoch': ep,
+                    #                 'model_state_dict': network.state_dict(),
+                    #                 'optimizer_state_dict': opt.state_dict(),
+                    #                 'loss': total_loss,
+                    #                 }, model_path) 
                         
                      
                     pbar.update(ins.shape[0])
@@ -138,7 +139,7 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
                 # Resetam pt a acumula valorile dintr-o noua epoca
                 metric.reset()
                          
-        return {'loss': total_loss, 'acc': total_acc}
+    return {'loss': total_loss, 'acc': total_acc}
 
 def main():
     print(f"pyTorch version {torch.__version__}")
@@ -194,7 +195,8 @@ def main():
         opt = torch.optim.SGD(network.parameters(), lr=config['train']['lr'])
 
     history = train(network, train_loader, valid_loader, criterion, opt, epochs=config['train']['epochs'], thresh=config['test']['threshold'], weights_dir=path)
-    plot_acc_loss(history) 
+    plot_acc_loss(history,path)
+    
 
 if __name__ == "__main__":
     main()
