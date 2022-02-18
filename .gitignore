@@ -2,3 +2,7 @@
 my_model.pth
 __pycache__/UNetModel.cpython-39.pyc
 *.pyc
+*.pth
+*.png
+*.txt
+*.pt
