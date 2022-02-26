@@ -21,24 +21,24 @@ import os
 from datetime import datetime 
 from torch.autograd import Variable
 
-class diceloss(torch.nn.Module):
-    def init(self):
-        super(diceloss, self).init()
+
+class DiceLoss(torch.nn.Module):
+    def __init__(self):
+        super(DiceLoss, self).__init__()
         
-    def forward(self,pred, target):
-       
+    def forward(self, pred, target):
        
        smooth = 1.
-       iflat = pred.view(-1)
-       tflat = target.view(-1)
+    #    iflat = pred.view(-1)
+    #    tflat = target.view(-1)
       
-       intersection = (iflat*tflat).sum()
-       A_sum = torch.sum(iflat * iflat)
-       B_sum = torch.sum(tflat * tflat)
-       return 1 - ((2. * intersection + smooth) / (A_sum + B_sum + smooth) )
+       intersection = (pred * target).sum()
+       A_sum = torch.sum(pred)
+       B_sum = torch.sum(target)
+       return 1 - ((2. * intersection) / (A_sum + B_sum + smooth) )
     
 
-def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.5, weights_dir='weights'):
+def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.5, weights_dir='weights', save_every_ep=5):
     total_loss = {'train': [], 'valid': []}
     total_acc = {'train': [], 'valid': []}
 
@@ -75,20 +75,26 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
                     tgs = tgs.to(device)
                     #print (ins.size(),tgs.size())
                     # seteaza toti gradientii la zero, deoarece PyTorch acumuleaza valorile lor dupa mai multe backward passes
-                    opt.zero_grad()
+                    opt.zero_grad() 
 
                     with torch.set_grad_enabled(phase == 'train'):
                         # se face forward propagation -> se calculeaza predictia
                         output = network(ins)
+                        #print(tgs.size())
                         #print(output.size())
                      
-                        #second_output = Variable(torch.argmax(output,1).float(),requires_grad=True).cuda()
+                        # second_output = Variable(torch.argmax(output,1).float(),requires_grad=True).cuda()
+                        # output[:, 1, :, :] => 8 x 1 x 128 x 1288
+                        # tgs => 8 x 1 x 128 x 128
+                        # tgs.squeeze() => 8 x 128 x 128
                         
                         # se calculeaza eroarea/loss-ul
-                        loss = criterion(output, tgs.squeeze())
+                        loss = criterion(output[:, 1, :, :], tgs)
                         
                         # deoarece reteaua nu include un strat de softmax, predictia finala trebuie calculata manual
-                        current_predict = (F.softmax(output, dim=1)[:, 1] > thresh).float()
+                        current_predict = F.softmax(output, dim=1)[:, 1].float()
+                        current_predict[current_predict >= thresh] = 1.0
+                        current_predict[current_predict < thresh] = 0.0
 
                         if 'cuda' in device.type:
                             current_predict = current_predict.cpu()
@@ -113,7 +119,8 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
 
                     if phase == 'valid':
                         # salvam ponderile modelului dupa fiecare epoca
-                        torch.save(network, f"{weights_dir}\\my_model{datetime.now().strftime('%m%d%Y_%H%M')}.pt")
+                        if ep % save_every_ep == 0:
+                            torch.save(network, f"{weights_dir}\\my_model{datetime.now().strftime('%m%d%Y_%H%M')}_e{ep}.pt")
                         
                     #     model_path = f"{weights_dir}\\model_epoch{ep}.pth"
                     #     torch.save({'epoch': ep,
@@ -147,7 +154,7 @@ def main():
     print(f"torchmetrics version {torchmetrics.__version__}")
     print(f"CUDA available {torch.cuda.is_available()}")
 
-    directory =f"Experiment{datetime.now().strftime('%m%d%Y_%H%M')}"
+    directory =f"Experiment_Dice_index{datetime.now().strftime('%m%d%Y_%H%M')}"
 
     parent_dir =os.getcwd() # get current working directory
     path = os.path.join(parent_dir, directory)
@@ -187,7 +194,7 @@ def main():
 
     print(f"# Train: {len(train_ds)} # Valid: {len(valid_ds)}")
 
-    criterion =torch.nn.CrossEntropyLoss()
+    criterion = DiceLoss()
 
     if config['train']['opt'] == 'Adam':
         opt = torch.optim.Adam(network.parameters(), lr=config['train']['lr'])
