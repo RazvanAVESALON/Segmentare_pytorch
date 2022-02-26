@@ -26,7 +26,7 @@ with open('config.yaml') as f: # reads .yml/.yaml files
     
 yml_data=yaml.dump(config)
 directory =f"Test{datetime.now().strftime('%m%d%Y_%H%M')}"
-parent_dir =r'D:\ai intro\Pytorch\Segmentare_pytorch\Experiment02172022_1831'
+parent_dir =r'D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index02222022_1339'
 path = os.path.join(parent_dir, directory)
 os.mkdir(path)
 
@@ -45,7 +45,7 @@ test_df = dataset_df.loc[dataset_df["subset"] == "test", :]
 test_ds = LungSegDataset(test_df, img_size=config["data"]["img_size"])
 test_loader = torch.utils.data.DataLoader(test_ds, batch_size=config["train"]["bs"], shuffle=False)
 
-network = torch.load(r"D:\ai intro\Pytorch\Segmentare_pytorch\Experiment02172022_1831\Weights\my_model02172022_1926.pt")
+network = torch.load(r"D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index02222022_1339\Weights\my_model02222022_1434_e95.pt")
 
 print(f"# Test: {len(test_ds)}")
 
