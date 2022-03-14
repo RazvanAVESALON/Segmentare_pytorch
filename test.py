@@ -19,7 +19,6 @@ from test_function import test
 from datetime import datetime
 import os 
 
-from lungs_class import plot_acc_loss
 config = None
 with open('config.yaml') as f: # reads .yml/.yaml files
     config = yaml.safe_load(f)
