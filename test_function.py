@@ -12,7 +12,7 @@ import torchvision
 import torchvision.transforms as T
 import torchmetrics 
 from tqdm import tqdm
-from UNetModel import UNet
+from UNet import UNet
 
 def test(network, test_loader, thresh=0.5):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
