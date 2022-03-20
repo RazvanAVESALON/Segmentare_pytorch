@@ -9,20 +9,34 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from torchmetrics.functional import dice_score
 import torchvision
 import torchvision.transforms as T
 import torchmetrics 
-from torchmetrics.functional import dice_score
 from tqdm import tqdm
-from UNetModel import UNet
+from UNet import UNet
 from configurare_data import create_dataset_csv , split_dataset
 from lungs_class import LungSegDataset , plot_acc_loss
 import os 
 from datetime import datetime 
 from torch.autograd import Variable
 
+class DiceIndex(torch.nn.Module):
+    def __init__(self):
+        super(DiceIndex, self).__init__()
+        
+    def forward(self, pred, target):
+       
+       smooth = 1.
+    #    iflat = pred.view(-1)
+    #    tflat = target.view(-1)
+      
+       intersection = (pred * target).sum()
+       A_sum = torch.sum(pred)
+       B_sum = torch.sum(target)
+       return  ((2. * intersection) / (A_sum + B_sum + smooth) )
 
-class DiceLoss(torch.nn.Module):
+class DiceLoss(torch.nn.Module):   
     def __init__(self):
         super(DiceLoss, self).__init__()
         
@@ -35,7 +49,7 @@ class DiceLoss(torch.nn.Module):
        intersection = (pred * target).sum()
        A_sum = torch.sum(pred)
        B_sum = torch.sum(target)
-       return 1 - ((2. * intersection) / (A_sum + B_sum + smooth) )
+       return  1 - ((2. * intersection) / (A_sum + B_sum + smooth) )
     
 
 def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.5, weights_dir='weights', save_every_ep=5):
@@ -49,8 +63,8 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
         'train': train_loader,
         'valid': valid_loader
     }
-    metric = torchmetrics.Accuracy()
-
+    
+    metric=dice_score
     network.to(device)
     criterion.to(device)
 
@@ -137,14 +151,14 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
                 total_loss[phase].append(running_loss/len(loaders[phase].dataset))
                 
                 # Calculam acuratetea pt toate batch-urile dintr-o epoca
-                acc = metric.compute()
-                total_acc[phase].append(acc)
+                
+                total_acc[phase].append(acc*100)
             
                 postfix = f'error {total_loss[phase][-1]:.4f} accuracy {acc*100:.2f}%'
                 pbar.set_postfix_str(postfix)
                         
                 # Resetam pt a acumula valorile dintr-o noua epoca
-                metric.reset()
+                               
                          
     return {'loss': total_loss, 'acc': total_acc}
 
@@ -163,7 +177,7 @@ def main():
     path=os.path.join(path, dir)
     os.mkdir(path)
 
-    network = UNet(n_channels=1, n_classes=2)
+    network = UNet(n_channels=1, n_classes=2,final_activation=nn.Softmax(dim=1))
 
     config = None
     with open('config.yaml') as f: # reads .yml/.yaml files
