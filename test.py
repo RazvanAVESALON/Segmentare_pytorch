@@ -12,7 +12,7 @@ import torchvision
 import torchvision.transforms as T
 import torchmetrics 
 from tqdm import tqdm
-from UNetModel import UNet
+from UNet import UNet
 from lungs_class import LungSegDataset
 from configurare_data import create_dataset_csv , split_dataset
 from test_function import test
@@ -25,7 +25,7 @@ with open('config.yaml') as f: # reads .yml/.yaml files
     
 yml_data=yaml.dump(config)
 directory =f"Test{datetime.now().strftime('%m%d%Y_%H%M')}"
-parent_dir =r'D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index02222022_1339'
+parent_dir =r'D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index03192022_1414'
 path = os.path.join(parent_dir, directory)
 os.mkdir(path)
 
@@ -44,7 +44,7 @@ test_df = dataset_df.loc[dataset_df["subset"] == "test", :]
 test_ds = LungSegDataset(test_df, img_size=config["data"]["img_size"])
 test_loader = torch.utils.data.DataLoader(test_ds, batch_size=config["train"]["bs"], shuffle=False)
 
-network = torch.load(r"D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index02222022_1339\Weights\my_model02222022_1434_e95.pt")
+network = torch.load(r"D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index03192022_1414\Weights\my_model03192022_1506_e95.pt")
 
 print(f"# Test: {len(test_ds)}")
 
