@@ -11,7 +11,7 @@ data:
     test: 0.1
 
 train:
-  bs: 8
+  bs: 16
   lr: 0.001
   opt: Adam
   epochs: 100
