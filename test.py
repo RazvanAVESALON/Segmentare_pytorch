@@ -18,6 +18,9 @@ from configurare_data import create_dataset_csv , split_dataset
 from test_function import test
 from datetime import datetime
 import os 
+import cv2
+
+
 
 config = None
 with open('config.yaml') as f: # reads .yml/.yaml files
@@ -25,7 +28,7 @@ with open('config.yaml') as f: # reads .yml/.yaml files
     
 yml_data=yaml.dump(config)
 directory =f"Test{datetime.now().strftime('%m%d%Y_%H%M')}"
-parent_dir =r'D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index03192022_1414'
+parent_dir =r'D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index03232022_1143'
 path = os.path.join(parent_dir, directory)
 os.mkdir(path)
 
@@ -44,7 +47,7 @@ test_df = dataset_df.loc[dataset_df["subset"] == "test", :]
 test_ds = LungSegDataset(test_df, img_size=config["data"]["img_size"])
 test_loader = torch.utils.data.DataLoader(test_ds, batch_size=config["train"]["bs"], shuffle=False)
 
-network = torch.load(r"D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index03192022_1414\Weights\my_model03192022_1506_e95.pt")
+network = torch.load(r"D:\ai intro\Pytorch\Segmentare_pytorch\Experiment_Dice_index03232022_1143\Weights\my_model03232022_1327_e195.pt")
 
 print(f"# Test: {len(test_ds)}")
 
@@ -73,10 +76,12 @@ for i, (img, gt, pred) in enumerate(zip(x[:nr_exs], y[:nr_exs], y_pred[:nr_exs])
     pred[pred > config['test']['threshold']] = 1
     pred[pred <= config['test']['threshold']] = 0
     pred = pred.astype(np.uint8)
-
+    
+  
     axs[i][2].axis('off')
-    axs[i][2].set_title('Prediction')
+    axs[i][2].set_title('Prediction ')
     axs[i][2].imshow(pred, cmap='gray')
+    
     
 plt.savefig(f"{path}\\Măști")     
 
