@@ -1,3 +1,4 @@
+from unittest import loader
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -39,17 +40,11 @@ class DiceIndex(torch.nn.Module):
 class DiceLoss(torch.nn.Module):   
     def __init__(self):
         super(DiceLoss, self).__init__()
+        self.dice_index = DiceIndex()
         
     def forward(self, pred, target):
-       
-       smooth = 1.
-    #    iflat = pred.view(-1)
-    #    tflat = target.view(-1)
-      
-       intersection = (pred * target).sum()
-       A_sum = torch.sum(pred)
-       B_sum = torch.sum(target)
-       return  1 - ((2. * intersection) / (A_sum + B_sum + smooth) )
+       return  1 - self.dice_index(pred, target)
+
     
 
 def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.5, weights_dir='weights', save_every_ep=5):
@@ -76,6 +71,7 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
         print("-" * 20)        
         for phase in ['train', 'valid']:
             running_loss = 0.0
+            running_average=0.0
 
             if phase == 'train':
                 network.train()  # Set model to training mode
@@ -129,6 +125,8 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
                             opt.step()
                     
                     running_loss += loss.item() * ins.size(0)
+                    
+                    running_average += acc.item()* ins.size(0)
                     # print(running_loss, loss.item())
 
                     if phase == 'valid':
@@ -151,8 +149,7 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
                 total_loss[phase].append(running_loss/len(loaders[phase].dataset))
                 
                 # Calculam acuratetea pt toate batch-urile dintr-o epoca
-                
-                total_acc[phase].append(acc*100)
+                total_acc[phase].append((running_average/len(loaders[phase].dataset))*100)
             
                 postfix = f'error {total_loss[phase][-1]:.4f} accuracy {acc*100:.2f}%'
                 pbar.set_postfix_str(postfix)
