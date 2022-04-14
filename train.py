@@ -94,12 +94,12 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
                         #print(output.size())
                      
                         # second_output = Variable(torch.argmax(output,1).float(),requires_grad=True).cuda()
-                        # output[:, 1, :, :] => 8 x 1 x 128 x 1288
+                        # output[:, 1, :, :] => 8 x 128 x 1288
                         # tgs => 8 x 1 x 128 x 128
                         # tgs.squeeze() => 8 x 128 x 128
                         
                         # se calculeaza eroarea/loss-ul
-                        loss = criterion(output[:, 1, :, :], tgs)
+                        loss = criterion(output[:, 1, :, :], tgs.squeeze())
                         
                         # deoarece reteaua nu include un strat de softmax, predictia finala trebuie calculata manual
                         current_predict = F.softmax(output, dim=1)[:, 1].float()
@@ -149,7 +149,7 @@ def train(network, train_loader, valid_loader, criterion, opt, epochs, thresh=0.
                 total_loss[phase].append(running_loss/len(loaders[phase].dataset))
                 
                 # Calculam acuratetea pt toate batch-urile dintr-o epoca
-                total_acc[phase].append((running_average/len(loaders[phase].dataset))*100)
+                total_acc[phase].append((running_average/len(loaders[phase].dataset)))
             
                 postfix = f'error {total_loss[phase][-1]:.4f} accuracy {acc*100:.2f}%'
                 pbar.set_postfix_str(postfix)
